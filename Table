@@ -1,0 +1,37 @@
+package org.example;
+
+import java.util.ArrayList;
+
+public class Table {
+    private final int x;
+    private final int y;
+    private final int diameter;
+    private String tableLabel;
+
+    public Table(int x, int y, String tableLabel){ //Här lägg till ArrayList med antal customers
+        this.x = x;
+        this.y = y;
+        this.tableLabel = tableLabel;
+        this.diameter = 80;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getDiameter() {
+        return diameter;
+    }
+
+    public String setTableNameOrder() {
+        return "Ordering...";
+    }
+
+    public String getTableLabel(){
+        return tableLabel;
+    }
+}
