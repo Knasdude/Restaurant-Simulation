@@ -1,0 +1,40 @@
+package org.example;
+
+import java.util.ArrayList;
+import java.lang.Math;
+
+public class Customer { //Fix table number
+    private final int tableNumber;
+
+    public Customer(int tableNumber) {
+        this.tableNumber = tableNumber;
+    }
+
+    public int getTableNumber(){
+        return tableNumber;
+    }
+
+    public static int randomOrderInt(){
+        return (int)(Math.random()*2);
+    }
+
+    public static ArrayList<String> order(Waiter waiter, Table table) {
+
+        String[] drinkOrder = waiter.drinksMenu();
+        String[] appOrder = waiter.appetizerMenu();
+        String[] mainOrder = waiter.mainMenu();
+        String[] desertOrder = waiter.desertMenu();
+
+        ArrayList<String> customerOrder = new ArrayList<String>();
+
+        if ((waiter.isWaiterAtTable(table) == true)) {
+
+            customerOrder.add(drinkOrder[randomOrderInt()]); //FIXA MATH CONVERT
+            customerOrder.add(appOrder[randomOrderInt()]);
+            customerOrder.add(mainOrder[randomOrderInt()]);
+            customerOrder.add(desertOrder[randomOrderInt()]);
+            //System.out.println("Customer order: " + customerOrder);
+        }
+        return customerOrder;
+    }
+}
