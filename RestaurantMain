@@ -1,0 +1,205 @@
+package org.example;
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.Random;
+
+public class RestaurantMain extends JPanel {
+    static boolean showMessage = false;
+    //static Timer tableMessageOrderTimer;
+
+    static boolean showTableMessageOrder = false;
+    static Timer messageTimer;
+
+    static ArrayList<Waiter> waiters = new ArrayList<Waiter>();
+    static ArrayList<Table> tables = new ArrayList<Table>();
+    static ArrayList<Customer> customers = new ArrayList<Customer>();
+    static ArrayList<Message> messages = new ArrayList<Message>();
+
+    static ArrayList<Integer> TableQueue = new ArrayList<Integer>();
+    //Om tableNumber är ...
+
+    // In here all objects that are needed for operating the restaurant should be created.
+    // This is initialisation and determines the initial state of the program.
+    static void setupRestaurant(){
+
+        //Overtables
+        tables.add(new Table(1000, 20, "1"));//FIX setupX och Y
+        tables.add(new Table(850, 20, "2"));
+        tables.add(new Table(700, 20, "3"));
+
+        //Undertables
+        tables.add(new Table(1000, 500, "4"));
+        tables.add(new Table(850, 500, "5"));
+        tables.add(new Table(700, 500, "6"));
+;
+        waiters.add(new Waiter(520,300 )); // Ursprung: 520, 300;
+
+        Customer customer1 = new Customer(4);
+        Customer customer2 = new Customer(2);
+
+        customers.add(customer1);
+        customers.add(customer2);
+
+        messages.add(new Message(Message.getX(waiters.get(0)), Message.getY(waiters.get(0))));
+    }
+
+    // Contains the simulation logic, should probably be broken into smaller pieces as the program expands
+    static void update() throws InterruptedException {
+        int randomTableInt = (int)(Math.random() * 6);
+        TableQueue.add(randomTableInt);
+        //Sen lägg in observer pattern
+
+        //Should be small, if in waiter
+
+        //customers.get(0).order(waiters.get(0), tables.get(4));
+        // what should happen with the waiter each time the simulation loops
+        for (Waiter w : waiters) {
+
+
+            //w.walkTo(tables.get(TableQueue.get(0)));
+
+            //Fixa enum
+            //Fixa isIdle för att kolla om han går eller ej och sen kör nästa walkTo.
+            if (w.isWaiterAtBase()) {
+                w.walkTo(tables.get(TableQueue.get(0)));
+
+            }
+
+            if (w.isWaiterAtTable(tables.get(TableQueue.get(0)))){ //Ställ till bord om ändrar w.walkTo
+                showMessageBubble();
+
+                showTableMessageOrder = true;
+                long startTime = System.currentTimeMillis();
+
+                if (messageTimer == null) {
+                    messageTimer = new Timer(500, e -> {
+                        long waiterAtTableTimer = System.currentTimeMillis() - startTime;
+                        //System.out.println("Tid tot:" + waiterAtTableTimer + "ms");
+
+                        if (waiterAtTableTimer < 2000) {
+                            tables.get(TableQueue.get(0)).setTableNameOrder();
+                            //System.out.println("Tid tot:" + waiterAtTableTimer + "ms");
+                        }
+
+                        if ((waiterAtTableTimer >= 2000) || (w.isWaiterAtBase())) {
+                            //System.out.println("Timer avslutad");
+                            messageTimer.stop();
+                            TableQueue.remove(0);
+                        }
+                    });
+
+                    messageTimer.start();
+
+                    //tables.get(0).setTableNameOrder
+                }
+            }
+        }
+    }
+    static void showMessageBubble() {
+        showMessage = true;
+
+        if (messageTimer != null) {
+            messageTimer.stop();
+        }
+
+        messageTimer = new Timer(2000, e -> {showMessage = false; messageTimer.stop(); });
+        messageTimer.setRepeats(false);
+        messageTimer.start();
+    }
+
+
+        // ... similar updates for all other agents in the simulation.
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        setBackground(new Color(255, 245, 158, 184)); //  // Set the background color to light yellow
+
+        g.setColor(Color.DARK_GRAY); // Set the color for the borderlines
+        g.drawRect(500, 0, 600, getHeight() - 5);
+        //g.drawRect(800, 0, getWidth() - 5, getHeight() - 5);
+        g.setColor(Color.BLACK);
+        g.drawRect(500, 0, 695, getHeight() - 5);
+
+        // Draw kitchen door
+        g.setColor(Color.DARK_GRAY);
+        g.fillRect(490, 270, 20, 100);
+        g.fillRect(1090, 270, 20, 100);
+
+        // Draw tables
+        drawTables(g);
+
+        // Draw the waiters
+        drawWaiters(g);
+
+        // Draw message
+        drawMessage(g);
+
+        // MORE CODE HERE
+    }
+
+
+    static void drawTables(Graphics g) {
+        for (Table table : tables) {
+            g.setColor(Color.RED);
+            g.fillOval(table.getX(), table.getY(), table.getDiameter(), table.getDiameter()); // Draw circle with diameter of 50 pixels
+            g.setColor(Color.WHITE);
+            g.fillOval(table.getX()+3, table.getY()+3, table.getDiameter()-6, table.getDiameter()-6);
+            g.setColor(Color.BLACK);
+            g.drawString(String.valueOf(table.getTableLabel()), table.getX()+30,  table.getY()+35);
+        }
+    }
+
+
+    static  void drawWaiters(Graphics g){
+        for (Waiter waiter : waiters) {
+            g.setColor(Color.BLACK);
+            g.fillOval(waiter.getX(), waiter.getY(), waiter.getDiameter(), waiter.getDiameter()); // Draw circle with diameter of 50 pixels
+            g.setColor(Color.WHITE);
+            g.fillOval(waiter.getX()+7, waiter.getY()+7, waiter.getDiameter()-14, waiter.getDiameter()-14); // Draw circle with diameter of 50 pixels
+        }
+    }
+
+    static void drawMessage(Graphics g){
+        if (showMessage == true) {
+            for (Message message : messages) {
+                g.setColor(Color.BLACK);
+                g.fillOval(Message.getX(waiters.get(0)), Message.getY(waiters.get(0)), message.getDiameter(), message.getDiameter()); // Draw circle with diameter of 50 pixels
+                g.setColor(Color.WHITE);
+                g.fillOval(Message.getX(waiters.get(0)) + 7, Message.getY(waiters.get(0)) + 7, message.getDiameter() - 14, message.getDiameter() - 14); // Draw circle with diameter of 50 pixels
+                g.setColor(Color.BLACK);
+                g.drawString(Message.orderMessage(), Message.getX(waiters.get(0)) + 10, Message.getY(waiters.get(0)) + 50);
+            }
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+    // Create the frame
+        JFrame frame = new JFrame("Restuarant Simulation");
+        frame.setSize(1200, 640); // Set window size
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+
+        // Add the custom panel (with circles) to the frame
+        RestaurantMain panel = new RestaurantMain();
+        frame.add(panel);
+
+        // Display the window
+        frame.setVisible(true);
+
+        // Setup for the restaurant
+        setupRestaurant();
+
+        while (true) {
+            try {
+                Thread.sleep(33); // With the goal of having about 30 fps.
+            } catch (Exception threadException) {
+                System.out.println("Sleep exception: " + threadException.getMessage());
+            }
+            update();
+            panel.repaint();
+        }
+    }
+}
