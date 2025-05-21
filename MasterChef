@@ -1,0 +1,54 @@
+package org.example;
+
+import java.util.ArrayList;
+
+public class MasterChef implements OrderSubject{
+    private int x;
+    private int y;
+    private final int diameter;
+    private ArrayList<ChefObserver> observers = new ArrayList<>();
+
+    public MasterChef(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.diameter = 50;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getDiameter() {
+        return diameter;
+    }
+
+    public ArrayList<ChefObserver> getObservers(){
+        return observers;
+    }
+
+    @Override
+    public void addObserver(ChefObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(ChefObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(String order) {
+        for (ChefObserver observer : observers) {
+            observer.update(order);
+        }
+    }
+
+    public void createOrder(String order) {
+        System.out.println("MasterChef sends out order: " + order);
+        notifyObservers(order);
+    }
+}
