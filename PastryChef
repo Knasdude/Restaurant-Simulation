@@ -1,0 +1,124 @@
+package org.example;
+
+public class PastryChef implements Chef, ChefObserver{
+    private int x;
+    private int y;
+    private int walkSpeed;
+    private final int diameter;
+    private final int baseX = 290;
+    private final int baseY = 80;
+    private MasterChef masterChef;
+    private long waitTimer;
+
+    private PastryChefStatus status = PastryChefStatus.IDLE;
+
+    public enum PastryChefStatus{ //FIXA ENUM VARIABLES
+        IDLE, WALKING_TO_MASTER_CHEF, RECEIVING_ORDER, WALKING_TO_STATION, COOKING,
+    }
+
+    public PastryChef(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.diameter = 40;
+        this.walkSpeed = 5;
+    }
+
+    public PastryChefStatus getPastryChefStatus(){
+        return status;
+    }
+
+    public void setStatus(PastryChefStatus newPastryChefStatus){
+        this.status = newPastryChefStatus;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getDiameter() {
+        return diameter;
+    }
+
+    @Override
+    public void update(String order) {
+        System.out.println("PrepChef received order: " + order);
+        this.setStatus(PastryChefStatus.COOKING);
+        // ev. börja röra sig etc
+    }
+
+
+
+
+
+    public int masterChefPosX(MasterChef masterChef){
+        return masterChef.getX();
+    }
+
+    public int masterChefPosY(MasterChef masterChef){
+        return masterChef.getY();
+    }
+
+    public boolean isAtMasterChef(){
+        return (Math.abs(x - masterChefPosX(masterChef)) <= walkSpeed) && (Math.abs(y - masterChefPosY(masterChef)) <= walkSpeed);
+    }
+
+    public boolean isChefAtBase(){
+        return (Math.abs(x - baseX) <= walkSpeed) && (Math.abs(y - baseY) <= walkSpeed);
+    }
+
+    public long getWaitTimer(){
+        return waitTimer;
+    }
+
+    public void walkTo(MasterChef masterChef) throws InterruptedException {
+
+        int MasterChefPosX = masterChefPosX(masterChef);
+        int MasterChefPosY = masterChefPosY(masterChef);
+        walkSpeed = 5;
+
+        if (x < MasterChefPosX) {
+            x += walkSpeed;
+            //System.out.println("Waiter påväg till bord");
+        } else if (x > MasterChefPosX) {
+            x -= walkSpeed;
+        }
+
+        if (y < MasterChefPosY) {
+            y += walkSpeed;
+            //System.out.println("Waiter påväg till bord");
+        } else if (y > MasterChefPosY) {
+            y -= walkSpeed;
+        }
+
+        if (isAtMasterChef()) {
+            setStatus(PastryChefStatus.RECEIVING_ORDER);
+            waitTimer = System.currentTimeMillis();
+
+        }
+    }
+
+
+
+
+
+
+    public void walkToBase() {
+        if (x < baseX) {
+            this.x = this.x + walkSpeed;
+        } else if (this.x > baseX) {
+            this.x = this.x - walkSpeed; //walkspeed = 5
+            //System.out.println(this.x);
+        }
+
+        if (this.y < baseY) {
+            this.y = this.y + walkSpeed;
+        } else if (this.y > baseY) {
+            this.y = this.y - walkSpeed;
+            //System.out.println(this.y);
+        }
+    }
+}
