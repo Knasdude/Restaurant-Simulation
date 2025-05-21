@@ -1,0 +1,20 @@
+package org.example;
+
+public class Food {
+    private final String foodName;
+    private final FoodTypes.FoodType foodtype;
+
+    public Food(String foodName, FoodTypes.FoodType type) {
+        this.foodName = foodName;
+        this.foodtype = type;
+    }
+
+    public String getFoodName() {
+        return foodName;
+    }
+
+    public FoodTypes.FoodType getType() {
+        return foodtype;
+    }
+}
+
