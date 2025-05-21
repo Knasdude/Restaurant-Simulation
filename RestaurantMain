@@ -2,38 +2,73 @@ package org.example;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.Random;
 
 public class RestaurantMain extends JPanel {
     static boolean showMessage = false;
     //static Timer tableMessageOrderTimer;
+    static HashMap <Table, ArrayList<String>> tableOrder = new HashMap<>();
 
     static boolean showTableMessageOrder = false;
     static Timer messageTimer;
+    static long lastTableTimeAdd = 0;
+    static final long tableAddDelay = 6000;
 
     static ArrayList<Waiter> waiters = new ArrayList<Waiter>();
     static ArrayList<Table> tables = new ArrayList<Table>();
     static ArrayList<Customer> customers = new ArrayList<Customer>();
     static ArrayList<Message> messages = new ArrayList<Message>();
+    static ArrayList<Chef> chefs = new ArrayList<>();
+    //static ArrayList<>  //Skit i denhär ta drawSousChef ist
+    static MasterChef masterChef;
+    static SousChef sousChef;
+    static PrepChef prepChef;
+    static PastryChef pastryChef;
+    static AppetizerChef appetizerChef;
 
     static ArrayList<Integer> TableQueue = new ArrayList<Integer>();
     //Om tableNumber är ...
 
     // In here all objects that are needed for operating the restaurant should be created.
     // This is initialisation and determines the initial state of the program.
-    static void setupRestaurant(){
+    static void setupRestaurant() throws Exception {
+
+        /*
+        chefs.add(new Chef(80, 80)); //dessa är ursprungspositioner: Fixa det som det
+        chefs.add(new Chef(150, 380));
+        chefs.add(new Chef(290, 80));
+        chefs.add(new Chef(390, 500));
+         */
+
+        sousChef = new SousChef(150, 380);
+        prepChef = new PrepChef(80,80);
+        pastryChef = new PastryChef(290, 80);
+        appetizerChef = new AppetizerChef(390, 500);
+
+        masterChef = new MasterChef(350,300);
+
+        chefs.add(sousChef);
+        chefs.add(prepChef);
+        chefs.add(pastryChef);
+        chefs.add(appetizerChef);
 
         //Overtables
-        tables.add(new Table(1000, 20, "1"));//FIX setupX och Y
-        tables.add(new Table(850, 20, "2"));
-        tables.add(new Table(700, 20, "3"));
+        tables.add(new Table(1000, 20, "1", 2));//FIX setupX och Y
+        tables.add(new Table(850, 20, "2", 1));
+        tables.add(new Table(700, 20, "3", 5));
 
         //Undertables
-        tables.add(new Table(1000, 500, "4"));
-        tables.add(new Table(850, 500, "5"));
-        tables.add(new Table(700, 500, "6"));
+        tables.add(new Table(1000, 500, "4", 2));
+        tables.add(new Table(850, 500, "5", 4));
+        tables.add(new Table(700, 500, "6", 4));
 ;
+        for (Table table: tables){
+            table.customerLimitCheck();
+        }
+
         waiters.add(new Waiter(520,300 )); // Ursprung: 520, 300;
 
         Customer customer1 = new Customer(4);
@@ -43,60 +78,91 @@ public class RestaurantMain extends JPanel {
         customers.add(customer2);
 
         messages.add(new Message(Message.getX(waiters.get(0)), Message.getY(waiters.get(0))));
+
+        masterChef.addObserver(sousChef);
+        masterChef.addObserver(prepChef);
+        masterChef.addObserver(pastryChef);
+        masterChef.addObserver(appetizerChef);
     }
+
+
 
     // Contains the simulation logic, should probably be broken into smaller pieces as the program expands
     static void update() throws InterruptedException {
-        int randomTableInt = (int)(Math.random() * 6);
-        TableQueue.add(randomTableInt);
-        //Sen lägg in observer pattern
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastTableTimeAdd >= tableAddDelay) {
+            int randomTableInt = (int) (Math.random() * 6);
+            TableQueue.add(randomTableInt);
+            lastTableTimeAdd = currentTime;
+        }
+
+        for (Chef c: chefs){
+            if (waiters.get(0).getWaiterStatus() == Waiter.waiterStatus.IDLE){
+                System.out.println("waiter at mchef");
+
+            }
+        }
+
+        //Sen lägg in observer pattern HÄR
 
         //Should be small, if in waiter
 
         //customers.get(0).order(waiters.get(0), tables.get(4));
         // what should happen with the waiter each time the simulation loops
+
+
+
+
         for (Waiter w : waiters) {
 
+            //Lägg in att customers kan beställa en för varje customer i en for loop
+            if (!TableQueue.isEmpty()) {
 
-            //w.walkTo(tables.get(TableQueue.get(0)));
+                //System.out.println(w.dessertMenu().get(1).getFoodName());
+                //System.out.println(w.dessertMenu().get(1).getType());
 
-            //Fixa enum
-            //Fixa isIdle för att kolla om han går eller ej och sen kör nästa walkTo.
-            if (w.isWaiterAtBase()) {
-                w.walkTo(tables.get(TableQueue.get(0)));
-
-            }
-
-            if (w.isWaiterAtTable(tables.get(TableQueue.get(0)))){ //Ställ till bord om ändrar w.walkTo
-                showMessageBubble();
-
-                showTableMessageOrder = true;
-                long startTime = System.currentTimeMillis();
-
-                if (messageTimer == null) {
-                    messageTimer = new Timer(500, e -> {
-                        long waiterAtTableTimer = System.currentTimeMillis() - startTime;
-                        //System.out.println("Tid tot:" + waiterAtTableTimer + "ms");
-
-                        if (waiterAtTableTimer < 2000) {
-                            tables.get(TableQueue.get(0)).setTableNameOrder();
-                            //System.out.println("Tid tot:" + waiterAtTableTimer + "ms");
-                        }
-
-                        if ((waiterAtTableTimer >= 2000) || (w.isWaiterAtBase())) {
-                            //System.out.println("Timer avslutad");
-                            messageTimer.stop();
-                            TableQueue.remove(0);
-                        }
-                    });
-
-                    messageTimer.start();
-
-                    //tables.get(0).setTableNameOrder
+                if (w.getWaiterStatus() == Waiter.waiterStatus.IDLE) {
+                    w.setStatus(Waiter.waiterStatus.WALKING_TO_TABLE);
+                    w.setCurrentTable(tables.get(TableQueue.get(0)));
                 }
+
+                if (w.getWaiterStatus() == Waiter.waiterStatus.WALKING_TO_TABLE) {
+                    w.walkTo(w.getCurrentTable());
+                }
+
+                if (w.getWaiterStatus() == Waiter.waiterStatus.WAITING_AT_TABLE) {
+                    showMessageBubble();
+                    showTableMessageOrder = true;
+                    w.getCurrentTable().setTableNameOrder();
+
+                    if (currentTime - w.getWaitTimer() >= 2000) {
+                        w.setStatus(Waiter.waiterStatus.WALKING_TO_BASE);
+                    }
+                }
+
+                if (w.getWaiterStatus() == Waiter.waiterStatus.WALKING_TO_BASE) {
+                    w.walkToBase();
+
+                    if (w.getCurrentTable() != null){
+                        w.getCurrentTable().resetTableName();
+                        w.setCurrentTable(null);
+                    }
+
+                    if (w.isWaiterAtBase()) {
+                        w.setStatus(Waiter.waiterStatus.IDLE);
+                        TableQueue.remove(0);
+                    }
+                }
+
+                //System.out.println(TableQueue);
+                //System.out.println(masterChef.getObservers());
+
             }
         }
     }
+
+
     static void showMessageBubble() {
         showMessage = true;
 
@@ -104,7 +170,7 @@ public class RestaurantMain extends JPanel {
             messageTimer.stop();
         }
 
-        messageTimer = new Timer(2000, e -> {showMessage = false; messageTimer.stop(); });
+        messageTimer = new Timer(750, e -> {showMessage = false; messageTimer.stop(); });
         messageTimer.setRepeats(false);
         messageTimer.start();
     }
@@ -128,6 +194,29 @@ public class RestaurantMain extends JPanel {
         g.fillRect(490, 270, 20, 100);
         g.fillRect(1090, 270, 20, 100);
 
+        // Draw master chef office
+        g.setColor(new Color(93, 191, 73, 255));
+        g.fillRect(410, 200, 60, 200);
+
+
+
+
+        // Draw the master chef
+        g.setColor(Color.DARK_GRAY);
+        g.fillOval(masterChef.getX(), masterChef.getY(), masterChef.getDiameter(), masterChef.getDiameter());
+        g.setColor(Color.GRAY);
+        g.fillOval(masterChef.getX()+3, masterChef.getY()+3, masterChef.getDiameter()-6, masterChef.getDiameter()-6); // Draw circle with diameter of 50 pixels
+
+
+        // Draw the chefs' workplaces
+        g.setColor(Color.LIGHT_GRAY);
+        g.fillRect(0, 0, 50, 150); // Prepchef
+        g.fillRect(50, 0, 100, 50);
+        g.fillRect(350, 50, 100, 100); // Garde Manger
+        g.fillRect(450, 445, 50, 150); // Patissier
+        g.fillRect(50, 300, 75, 200); // Sous chef
+
+
         // Draw tables
         drawTables(g);
 
@@ -137,7 +226,46 @@ public class RestaurantMain extends JPanel {
         // Draw message
         drawMessage(g);
 
+        // Draw chefs
+        drawSousChef(g);
+
+        drawPrepChef(g);
+
+        drawPastryChef(g);
+
+        drawAppetizerChef(g);
+
+
         // MORE CODE HERE
+    }
+
+
+    static void drawSousChef(Graphics g){
+            g.setColor(Color.GRAY);
+            g.fillOval(sousChef.getX(), sousChef.getY(), sousChef.getDiameter(), sousChef.getDiameter()); // Draw circle with diameter of 50 pixels
+            g.setColor(Color.MAGENTA);
+            g.fillOval(sousChef.getX()+3, sousChef.getY()+3, sousChef.getDiameter()-6, sousChef.getDiameter()-6); // Draw circle with diameter of 50 pixels
+    }
+
+    static void drawPrepChef(Graphics g){
+        g.setColor(Color.GRAY);
+        g.fillOval(prepChef.getX(), prepChef.getY(), prepChef.getDiameter(), prepChef.getDiameter()); // Draw circle with diameter of 50 pixels
+        g.setColor(Color.GREEN);
+        g.fillOval(prepChef.getX()+3, prepChef.getY()+3, prepChef.getDiameter()-6, prepChef.getDiameter()-6); // Draw circle with diameter of 50 pixels
+    }
+
+    static void drawPastryChef(Graphics g){
+        g.setColor(Color.GRAY);
+        g.fillOval(pastryChef.getX(), pastryChef.getY(), pastryChef.getDiameter(), pastryChef.getDiameter()); // Draw circle with diameter of 50 pixels
+        g.setColor(Color.PINK);
+        g.fillOval(pastryChef.getX()+3, pastryChef.getY()+3, pastryChef.getDiameter()-6, pastryChef.getDiameter()-6); // Draw circle with diameter of 50 pixels
+    }
+
+    static void drawAppetizerChef(Graphics g){
+        g.setColor(Color.GRAY);
+        g.fillOval(appetizerChef.getX(), appetizerChef.getY(), appetizerChef.getDiameter(), appetizerChef.getDiameter()); // Draw circle with diameter of 50 pixels
+        g.setColor(Color.CYAN);
+        g.fillOval(appetizerChef.getX()+3, appetizerChef.getY()+3, appetizerChef.getDiameter()-6, appetizerChef.getDiameter()-6); // Draw circle with diameter of 50 pixels
     }
 
 
@@ -148,7 +276,7 @@ public class RestaurantMain extends JPanel {
             g.setColor(Color.WHITE);
             g.fillOval(table.getX()+3, table.getY()+3, table.getDiameter()-6, table.getDiameter()-6);
             g.setColor(Color.BLACK);
-            g.drawString(String.valueOf(table.getTableLabel()), table.getX()+30,  table.getY()+35);
+            g.drawString(String.valueOf(table.getTableLabel()), table.getX()+18,  table.getY()+40);
         }
     }
 
@@ -175,7 +303,7 @@ public class RestaurantMain extends JPanel {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
     // Create the frame
         JFrame frame = new JFrame("Restuarant Simulation");
         frame.setSize(1200, 640); // Set window size
