@@ -1,10 +1,13 @@
 package org.example;
 
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.lang.Math;
 
 public class Customer { //Fix table number
     private final int tableNumber;
+    private Table table;
+    private Waiter waiter;
 
     public Customer(int tableNumber) {
         this.tableNumber = tableNumber;
@@ -18,22 +21,26 @@ public class Customer { //Fix table number
         return (int)(Math.random()*2);
     }
 
-    public static ArrayList<String> order(Waiter waiter, Table table) {
 
-        String[] drinkOrder = waiter.drinksMenu();
-        String[] appOrder = waiter.appetizerMenu();
-        String[] mainOrder = waiter.mainMenu();
-        String[] desertOrder = waiter.desertMenu();
+    public static HashMap<Table, ArrayList<String>> orderToWaiter(Waiter waiter, Table table) {
 
-        ArrayList<String> customerOrder = new ArrayList<String>();
+        HashMap<Table, ArrayList<String>> customerOrder = new HashMap<>();
 
-        if ((waiter.isWaiterAtTable(table) == true)) {
+        ArrayList<Food> appOrder = waiter.appetizerMenu();   //FIXA SÅ ATT STÄMMER ÖVERENS MED KOCKAR
+        ArrayList<Food> mainOrder = waiter.mainMenu();
+        ArrayList<Food> dessertOrder = waiter.dessertMenu();
 
-            customerOrder.add(drinkOrder[randomOrderInt()]); //FIXA MATH CONVERT
-            customerOrder.add(appOrder[randomOrderInt()]);
-            customerOrder.add(mainOrder[randomOrderInt()]);
-            customerOrder.add(desertOrder[randomOrderInt()]);
+
+
+        if (waiter.isWaiterAtTable(table)) {
+            ArrayList<String> orderList = new ArrayList<>();
+
+            orderList.add(appOrder.get(randomOrderInt()).getFoodName());
+            orderList.add(mainOrder.get(randomOrderInt()).getFoodName());
+            orderList.add(dessertOrder.get(randomOrderInt()).getFoodName());
             //System.out.println("Customer order: " + customerOrder);
+
+            customerOrder.put(table, orderList);
         }
         return customerOrder;
     }
