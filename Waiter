@@ -1,0 +1,188 @@
+package org.example;
+import javax.swing.plaf.nimbus.State;
+import java.sql.SQLOutput;
+import java.util.ArrayList;
+
+import java.util.Objects;
+
+public class Waiter {
+    private int x;
+    private int y;
+    private final int diameter;
+    private int walkSpeed;
+    private int diagonalSpeed;
+    private final int baseX = 520;
+    private final int baseY = 300;
+    private Table currentTable;
+    private Customer customer;
+
+    private waiterStatus status = waiterStatus.IDLE;
+    private long waitTimer;
+
+
+    public enum waiterStatus{
+        IDLE, WALKING_TO_TABLE, WALKING_TO_BASE, WAITING_AT_TABLE,
+    }
+
+    public Waiter(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.diameter = 50;
+
+        this.walkSpeed = 5;
+        this.customer = customer;
+    }
+
+    public waiterStatus getWaiterStatus(){
+        return status;
+    }
+
+    public void setStatus(waiterStatus newWaiterStatus){
+        this.status = newWaiterStatus;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getDiameter() {
+        return diameter;
+    }
+
+    //orders för apetizer
+    public ArrayList<Food> appetizerMenu() {
+        ArrayList<Food> appMenu = new ArrayList();
+        appMenu.add(new Food("BreadSticks", FoodTypes.FoodType.APPETIZER));
+        appMenu.add(new Food("Garlic Bread", FoodTypes.FoodType.APPETIZER));
+
+        return appMenu;
+    }
+
+    public ArrayList<Food> mainMenu() {
+        ArrayList<Food> mainMenu = new ArrayList();
+        mainMenu.add(new Food("Pasta", FoodTypes.FoodType.MAIN));
+        mainMenu.add(new Food("Meatballs", FoodTypes.FoodType.MAIN));
+
+        return mainMenu;
+    }
+
+
+    public ArrayList <Food >drinksMenu() {
+        ArrayList<Food> drinksMenu = new ArrayList<>();
+        drinksMenu.add(new Food("Water", FoodTypes.FoodType.DRINKS));
+        drinksMenu.add(new Food("Coca-Cola",FoodTypes.FoodType.DRINKS));
+        return drinksMenu;
+    }
+
+
+    public ArrayList<Food> dessertMenu() {
+        ArrayList<Food> dessertMenu = new ArrayList<>();
+        dessertMenu.add(new Food("Tiramisu", FoodTypes.FoodType.DESSERT));
+        dessertMenu.add(new Food("Chocolate Cake", FoodTypes.FoodType.DESSERT));
+
+        return dessertMenu;
+    }
+
+
+    public void setCurrentTable(Table table){
+        this.currentTable = table;
+    }
+
+    public Table getCurrentTable(){
+        return currentTable;
+    }
+
+    /*
+    public void receiveOrder(Customer customer, Table table) {
+        ArrayList<String> currentOrder = Customer.orderToWaiter(this, table);
+        System.out.println("Ord. till waiter: " + currentOrder);
+    }
+     */
+
+
+
+    public void walk() {
+        x += walkSpeed;
+        y += walkSpeed;
+
+        if (x >= 200) {
+            walkSpeed = -5;
+        }
+
+        if (y >= 200) {
+            walkSpeed = -5;
+        }
+    }
+
+    public int WaiterTablePosX(Table table) {
+        return table.getX();
+    }
+
+
+    public int WaiterTablePosY(Table table) {
+        if ((Objects.equals(table.getTableLabel(), "1")) || (Objects.equals(table.getTableLabel(), "2")) || (Objects.equals(table.getTableLabel(), "3"))) {
+            return table.getY() + 80;
+        } else {
+            return table.getY() - 80;
+        }
+    }
+
+    public void walkToBase() {
+        if (x < baseX) {
+            this.x = this.x + walkSpeed;
+        } else if (this.x > baseX) {
+            this.x = this.x - walkSpeed; //walkspeed = 5
+            //System.out.println(this.x);
+        }
+
+        if (this.y < baseY) {
+            this.y = this.y + walkSpeed;
+        } else if (this.y > baseY) {
+            this.y = this.y - walkSpeed;
+            //System.out.println(this.y);
+        }
+    }
+
+    public boolean isWaiterAtTable(Table table) {
+        return (Math.abs(x - WaiterTablePosX(table)) <= walkSpeed) && (Math.abs(y - WaiterTablePosY(table)) <= walkSpeed);
+    }
+
+    public boolean isWaiterAtBase(){
+        return (Math.abs(x - baseX) <= walkSpeed) && (Math.abs(y - baseY) <= walkSpeed);
+    }
+
+    public long getWaitTimer(){
+        return waitTimer;
+    }
+
+    public void walkTo(Table table) throws InterruptedException {
+
+        int TablePosX = WaiterTablePosX(table);
+        int TablePosY = WaiterTablePosY(table);
+        walkSpeed = 5;
+
+            if (x < TablePosX) {
+                x += walkSpeed;
+                //System.out.println("Waiter påväg till bord");
+            } else if (x > TablePosX) {
+                x -= walkSpeed;
+            }
+
+            if (y < TablePosY) {
+                y += walkSpeed;
+                //System.out.println("Waiter påväg till bord");
+            } else if (y > TablePosY) {
+                y -= walkSpeed;
+            }
+
+            if (isWaiterAtTable(table)) {
+                setStatus(waiterStatus.WAITING_AT_TABLE);
+                waitTimer = System.currentTimeMillis();
+
+        }
+    }
+}
