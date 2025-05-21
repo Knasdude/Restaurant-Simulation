@@ -1,0 +1,10 @@
+package org.example;
+
+public class FoodTypes {
+    public enum FoodType {
+        APPETIZER,
+        MAIN,
+        DESSERT,
+        DRINKS
+    }
+}
