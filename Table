@@ -7,12 +7,24 @@ public class Table {
     private final int y;
     private final int diameter;
     private String tableLabel;
+    private final String originalTableLabel;
+    private int numberCustomer;
+    private final int customerLimit;
 
-    public Table(int x, int y, String tableLabel){ //Här lägg till ArrayList med antal customers
+    public Table(int x, int y, String tableLabel, int numberCustomer) throws Exception{ //Här lägg till ArrayList med antal customers
         this.x = x;
         this.y = y;
         this.tableLabel = tableLabel;
+        this.originalTableLabel = tableLabel;
         this.diameter = 80;
+        this.customerLimit = 6;
+        this.numberCustomer = numberCustomer;
+    }
+
+    public void customerLimitCheck(){
+        if (numberCustomer >= customerLimit){
+            throw new IllegalArgumentException("Customer limit reached");
+        }
     }
 
     public int getX() {
@@ -27,8 +39,17 @@ public class Table {
         return diameter;
     }
 
-    public String setTableNameOrder() {
-        return "Ordering...";
+    public int getNumberCustomer(){
+        return numberCustomer;
+    }
+
+    public void setTableNameOrder() {
+        tableLabel = "Ordering";
+        //return "Ordering...";
+    }
+
+    public void resetTableName(){
+        tableLabel = originalTableLabel;
     }
 
     public String getTableLabel(){
