@@ -1,17 +1,53 @@
 package org.example;
 
+/**
+ * Represents a food item with a name, type, and cook time.
+ */
+
 public class Food {
     private final String foodName;
     private final FoodTypes.FoodType foodtype;
+    private int CookTime;
 
-    public Food(String foodName, FoodTypes.FoodType type) {
+    /**
+     * Constructor for a new Food item
+     *
+     * @param foodName the name of the food
+     * @param type the type of the food (appetizer, main, dessert or drinks)
+     * @param CookTime the time required to cook the food, in milliseconds
+     */
+
+    public Food(String foodName, FoodTypes.FoodType type, int CookTime) {
         this.foodName = foodName;
         this.foodtype = type;
+        this.CookTime = CookTime;
     }
+
+    /**
+     * Returns the cook time of the food.
+     *
+     * @return the cook time
+     */
+
+    public int getCookTime(){
+        return CookTime;
+    }
+
+    /**
+     * Returns the name of the food.
+     *
+     * @return the food name
+     */
 
     public String getFoodName() {
         return foodName;
     }
+
+    /**
+     * Returns the type of the food
+     *
+     * @return the food type
+     */
 
     public FoodTypes.FoodType getType() {
         return foodtype;
