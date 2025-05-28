@@ -1,0 +1,46 @@
+package org.example;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class MessageTest {
+
+    @Test
+    void testWaiterPosXRightSide() {
+        Waiter waiter = new Waiter(950, 300); // x >= 900
+        int waiterX = Message.getX(waiter);
+        assertEquals(850, waiterX);
+    }
+
+    @Test
+    void testWaiterPosXLeftSide() {
+        Waiter waiter = new Waiter(500, 300); // x < 900
+        int waiterX = Message.getX(waiter);
+        assertEquals(600, waiterX);
+    }
+
+    @Test
+    void testGetY_whenWaiterIsLowerThanThreshold() {
+        Waiter waiter = new Waiter(500, 250); // y <= 300
+        int waiterY = Message.getY(waiter);
+        assertEquals(300, waiterY);
+    }
+
+    @Test
+    void testGetY_whenWaiterIsHigherThanThreshold() {
+        Waiter waiter = new Waiter(500, 400); // y > 300
+        int waiterY = Message.getY(waiter);
+        assertEquals(350, waiterY);
+    }
+
+    @Test
+    void testGetDiameter() {
+        Message message = new Message(100, 200);
+        assertEquals(100, message.getDiameter());
+    }
+
+    @Test
+    void testOrderMessage() {
+        assertEquals("Tar beställning", Message.orderMessage());
+    }
+}
