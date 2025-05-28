@@ -1,9 +1,15 @@
 package org.example;
 import javax.swing.plaf.nimbus.State;
+import java.sql.Array;
 import java.sql.SQLOutput;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import java.util.Objects;
+
+/**
+ * Represents a waiter in the restaurant simulation who takes orders from customers and walks between tables and base.
+ */
 
 public class Waiter {
     private int x;
@@ -15,31 +21,59 @@ public class Waiter {
     private final int baseY = 300;
     private Table currentTable;
     private Customer customer;
+    private ArrayList<Food> receivedOrders = new ArrayList<>();
 
     private waiterStatus status = waiterStatus.IDLE;
     private long waitTimer;
 
-
+    /**
+     * Enum representing the different states the waiter can be in.
+     */
     public enum waiterStatus{
         IDLE, WALKING_TO_TABLE, WALKING_TO_BASE, WAITING_AT_TABLE,
     }
 
+    /**
+     * Constructs a Waiter at a specific position.
+     *
+     * @param x the initial x position
+     * @param y the initial y position
+     */
     public Waiter(int x, int y) {
         this.x = x;
         this.y = y;
         this.diameter = 50;
-
         this.walkSpeed = 5;
         this.customer = customer;
     }
 
+    /**
+     * Gets the current status of the waiter.
+     *
+     * @return the current waiterStatus
+     */
     public waiterStatus getWaiterStatus(){
         return status;
     }
 
+    /**
+     * Returns the orders received by the waiter.
+     *
+     * @return list of Food objects
+     */
+    public ArrayList<Food> getRecievedOrders(){
+        return receivedOrders;
+    }
+
+    /**
+     * Sets the waiter's status.
+     *
+     * @param newWaiterStatus the new status to set
+     */
     public void setStatus(waiterStatus newWaiterStatus){
         this.status = newWaiterStatus;
     }
+
 
     public int getX() {
         return x;
@@ -53,76 +87,121 @@ public class Waiter {
         return diameter;
     }
 
-    //orders för apetizer
+    /**
+     * Creates a list of available appetizer items.
+     *
+     * @return list of appetizer Food items
+     */
     public ArrayList<Food> appetizerMenu() {
         ArrayList<Food> appMenu = new ArrayList();
-        appMenu.add(new Food("BreadSticks", FoodTypes.FoodType.APPETIZER));
-        appMenu.add(new Food("Garlic Bread", FoodTypes.FoodType.APPETIZER));
+        appMenu.add(new Food("BreadSticks", FoodTypes.FoodType.APPETIZER, 2500));
+        appMenu.add(new Food("Garlic Bread", FoodTypes.FoodType.APPETIZER, 3000));
 
         return appMenu;
     }
 
-    public ArrayList<Food> mainMenu() {
+    /**
+     * Creates a list of available main course items.
+     *
+     * @return list of main course Food items
+     */
+    public ArrayList<Food > mainMenu() {
         ArrayList<Food> mainMenu = new ArrayList();
-        mainMenu.add(new Food("Pasta", FoodTypes.FoodType.MAIN));
-        mainMenu.add(new Food("Meatballs", FoodTypes.FoodType.MAIN));
+        mainMenu.add(new Food("Pasta", FoodTypes.FoodType.MAIN, 4000));
+        mainMenu.add(new Food("Meatballs", FoodTypes.FoodType.MAIN, 5000));
 
         return mainMenu;
     }
 
-
+    /**
+     * Creates a list of available drinks.
+     *
+     * @return list of drink Food items
+     */
     public ArrayList <Food >drinksMenu() {
         ArrayList<Food> drinksMenu = new ArrayList<>();
-        drinksMenu.add(new Food("Water", FoodTypes.FoodType.DRINKS));
-        drinksMenu.add(new Food("Coca-Cola",FoodTypes.FoodType.DRINKS));
+        drinksMenu.add(new Food("Water", FoodTypes.FoodType.DRINKS, 2000));
+        drinksMenu.add(new Food("Coca-Cola",FoodTypes.FoodType.DRINKS, 2200));
         return drinksMenu;
     }
 
-
+    /**
+     * Creates a list of available desserts.
+     *
+     * @return list of dessert Food items
+     */
     public ArrayList<Food> dessertMenu() {
         ArrayList<Food> dessertMenu = new ArrayList<>();
-        dessertMenu.add(new Food("Tiramisu", FoodTypes.FoodType.DESSERT));
-        dessertMenu.add(new Food("Chocolate Cake", FoodTypes.FoodType.DESSERT));
+        dessertMenu.add(new Food("Tiramisu", FoodTypes.FoodType.DESSERT, 3500));
+        dessertMenu.add(new Food("Chocolate Cake", FoodTypes.FoodType.DESSERT, 3500));
 
         return dessertMenu;
     }
 
-
+    /**
+     * Sets the waiters current table to approach and interact with
+     *
+     */
     public void setCurrentTable(Table table){
         this.currentTable = table;
     }
 
+    /**
+     * Gets the which table is waiter currently receiving orders from
+     *
+     * @return the current Table object the waiter is interacting with
+     */
     public Table getCurrentTable(){
         return currentTable;
     }
 
-    /*
-    public void receiveOrder(Customer customer, Table table) {
-        ArrayList<String> currentOrder = Customer.orderToWaiter(this, table);
-        System.out.println("Ord. till waiter: " + currentOrder);
-    }
+    /**
+     * Combines all customer orders at a given table into one list.
+     *
+     * @param table the table whose orders are being collected
+     * @return combined list of Food objects from all customers
      */
+    public ArrayList<Food> getCombinedTableOrder(Table table) {
+        ArrayList<Food> combinedTableOrders = new ArrayList<>();
+        ArrayList<Food> customerOrder = new ArrayList<>();
 
+        for (Customer customer : table.getCustomerList()) {
+            customerOrder = customer.orderToWaiter(this, table);
 
-
-    public void walk() {
-        x += walkSpeed;
-        y += walkSpeed;
-
-        if (x >= 200) {
-            walkSpeed = -5;
+            combinedTableOrders.addAll(customerOrder);
         }
 
-        if (y >= 200) {
-            walkSpeed = -5;
-        }
+        return combinedTableOrders;
     }
 
+    /**
+     * Waiter receives the order from a specific customer and uses getCombinedTableOrder to combine the order for the entire table.
+     *
+     * @param customer the customer giving the order
+     */
+    public void receiveOrder(Customer customer) {
+
+        Table table = customer.getTable();
+        receivedOrders = getCombinedTableOrder(table);
+    }
+
+    /**
+     * Gets the target x coordinate of the table the waiter is approaching
+     *
+     * @param table the target table
+     * @return x coordinate
+     */
     public int WaiterTablePosX(Table table) {
         return table.getX();
     }
 
-
+    /**
+     * Gets the target y-coordinate for the table the waiter is apporaching
+     * If the tables are on the upper part of the restaurant the waiter will stop underneath the table, if it is on the bottom it will stop above so that there is no overlap
+     *
+     * @param table the target table
+     * @return y coordinate
+     */
     public int WaiterTablePosY(Table table) {
         if ((Objects.equals(table.getTableLabel(), "1")) || (Objects.equals(table.getTableLabel(), "2")) || (Objects.equals(table.getTableLabel(), "3"))) {
             return table.getY() + 80;
@@ -131,50 +210,71 @@ public class Waiter {
         }
     }
 
+    /**
+     * Moves the waiter back to their base position in front of the masterchef
+     */
+
     public void walkToBase() {
         if (x < baseX) {
             this.x = this.x + walkSpeed;
         } else if (this.x > baseX) {
             this.x = this.x - walkSpeed; //walkspeed = 5
-            //System.out.println(this.x);
         }
 
         if (this.y < baseY) {
             this.y = this.y + walkSpeed;
         } else if (this.y > baseY) {
             this.y = this.y - walkSpeed;
-            //System.out.println(this.y);
         }
     }
+
+    /**
+     * Checks if the waiter has arrived at the current table.
+     *
+     * @param table the table being checked
+     * @return true if waiter is at table, false otherwise
+     */
 
     public boolean isWaiterAtTable(Table table) {
         return (Math.abs(x - WaiterTablePosX(table)) <= walkSpeed) && (Math.abs(y - WaiterTablePosY(table)) <= walkSpeed);
     }
 
+    /**
+     * Checks if the waiter is currently at their base.
+     *
+     * @return true if at base, false otherwise
+     */
     public boolean isWaiterAtBase(){
         return (Math.abs(x - baseX) <= walkSpeed) && (Math.abs(y - baseY) <= walkSpeed);
     }
 
+    /**
+     * Returns the waiter's current wait timer.
+     *
+     * @return wait timer
+     */
     public long getWaitTimer(){
         return waitTimer;
     }
 
-    public void walkTo(Table table) throws InterruptedException {
+    /**
+     * Moves the waiter toward a specific table and updates the status if arrival is reached.
+     *
+     * @param table the target table
+     */
+    public void walkTo(Table table) {
 
         int TablePosX = WaiterTablePosX(table);
         int TablePosY = WaiterTablePosY(table);
-        walkSpeed = 5;
 
             if (x < TablePosX) {
                 x += walkSpeed;
-                //System.out.println("Waiter påväg till bord");
             } else if (x > TablePosX) {
                 x -= walkSpeed;
             }
 
             if (y < TablePosY) {
                 y += walkSpeed;
-                //System.out.println("Waiter påväg till bord");
             } else if (y > TablePosY) {
                 y -= walkSpeed;
             }
