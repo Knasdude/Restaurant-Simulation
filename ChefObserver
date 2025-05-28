@@ -1,5 +1,18 @@
 package org.example;
 
+import java.util.ArrayList;
+
+/**
+ * Represents an observer in the observer pattern that reacts to updates
+ * related to food orders.
+ */
+
 public interface ChefObserver {
-    void update(String order);
+
+    /**
+     * Called to notify the observer about a new or updated order
+     *
+     * @param order the list of Food items in the order
+     */
+    void update(ArrayList<Food> order);
 }
