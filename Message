@@ -2,16 +2,37 @@ package org.example;
 
 import java.util.ArrayList;
 
+/**
+ * Represents a message bubble with a position and a size
+ * Used by a waiter to display messages in the restaurant simulation.
+ */
+
 public class Message {
     private final int x;
     private final int y;
     private final int diameter;
+
+    /**
+     * Constructs a Message at the specified coordinates.
+     *
+     * @param x the x coordinate of the message bubble
+     * @param y the y coordinate of the message bubble
+     */
 
     public Message(int x, int y){
         this.x = x;
         this.y = y;
         this.diameter = 100;
     }
+
+    /**
+     * Calculates the x-coordinate for the message bubble based on the position of a  Waiter
+     * If the waiter's x-coordinate is greater than or equal to 900 meaning waiter is at the right side of the restaurant, the message is repositioned 100 pixels to the left,
+     * otherwise 100 units to the right to ensure the message doesn't go out of bounds of the restaurant.
+     *
+     * @param waiter the Waiter whose position is used to calculate the message x coordinate
+     * @return the calculated x coordinate for the message bubble
+     */
 
     public static int getX(Waiter waiter) {
         if (waiter.getX() >= 900){
@@ -23,6 +44,13 @@ public class Message {
         }
     }
 
+    /**
+     * Same as method above but calculates the Y position of the waiter so that it doesnt overlap with tables
+     *
+     * @param waiter the Waiter whose position is used to calculate the message  Y coordinate
+     * @return the calculated Y coordinate for the message bubble
+     */
+
     public static int getY(Waiter waiter) {
         if (waiter.getY() > 300){
             return (waiter.getY() - 50);
@@ -33,9 +61,21 @@ public class Message {
         }
     }
 
+    /**
+     * Returns the diameter of the message bubble.
+     *
+     * @return the diameter of the message bubble
+     */
+
     public int getDiameter() {
         return diameter;
     }
+
+    /**
+     * Returns the fixed order message text displayed in the message bubble for when waiter recives an order from a customer.
+     *
+     * @return the order message text
+     */
 
     public static String orderMessage(){
         return "Tar beställning";
