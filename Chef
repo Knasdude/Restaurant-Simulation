@@ -4,4 +4,7 @@ public interface Chef {
     public int getX();
     public int getY();
     enum status{}
+    public void walkTo(MasterChef masterChef) throws InterruptedException;
+    public long getWaitTimer();
+
 }
