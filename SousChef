@@ -1,5 +1,13 @@
 package org.example;
 
+import java.util.ArrayList;
+
+/**
+ * Represents the SousChef in the kitchen simulation.
+ * The SousChef receives food orders of the foodtype MAIN from the MasterChef and simulates movement and cooking behavior.
+ * Implements both Chef and ChefObserver interfaces.
+ */
+
 public class SousChef implements Chef, ChefObserver{
     private int x;
     private int y;
@@ -12,15 +20,16 @@ public class SousChef implements Chef, ChefObserver{
 
     private SousChefStatus status = SousChefStatus.IDLE;
 
-    public enum SousChefStatus{ //FIXA ENUM VARIABLES
+    public enum SousChefStatus{
         IDLE, WALKING_TO_MASTER_CHEF, RECEIVING_ORDER, WALKING_TO_STATION, COOKING,
     }
 
-    public SousChef(int x, int y) {
+    public SousChef(int x, int y, MasterChef mc) {
         this.x = x;
         this.y = y;
         this.diameter = 40;
         this.walkSpeed = 5;
+        this.masterChef = mc;
     }
 
     public SousChefStatus getSousChefStatus(){
@@ -44,13 +53,11 @@ public class SousChef implements Chef, ChefObserver{
     }
 
     @Override
-    public void update(String order) {
+    public void update(ArrayList<Food> order) {
         System.out.println("PrepChef received order: " + order);
         this.setStatus(SousChefStatus.COOKING);
-        // ev. börja röra sig etc
     }
 
-    //ALLT HÄRIFRÅN
 
     public int masterChefPosX(MasterChef masterChef){
         return masterChef.getX();
@@ -72,22 +79,20 @@ public class SousChef implements Chef, ChefObserver{
         return waitTimer;
     }
 
-    public void walkTo(MasterChef masterChef) throws InterruptedException {
+    @Override
+    public void walkTo(MasterChef masterChef){
 
         int MasterChefPosX = masterChefPosX(masterChef);
         int MasterChefPosY = masterChefPosY(masterChef);
-        walkSpeed = 5;
 
         if (x < MasterChefPosX) {
             x += walkSpeed;
-            //System.out.println("Waiter påväg till bord");
         } else if (x > MasterChefPosX) {
             x -= walkSpeed;
         }
 
         if (y < MasterChefPosY) {
             y += walkSpeed;
-            //System.out.println("Waiter påväg till bord");
         } else if (y > MasterChefPosY) {
             y -= walkSpeed;
         }
@@ -99,21 +104,17 @@ public class SousChef implements Chef, ChefObserver{
         }
     }
 
-    //TILL HIT
-
     public void walkToBase() {
         if (x < baseX) {
             this.x = this.x + walkSpeed;
         } else if (this.x > baseX) {
-            this.x = this.x - walkSpeed; //walkspeed = 5
-            //System.out.println(this.x);
+            this.x = this.x - walkSpeed;
         }
 
         if (this.y < baseY) {
             this.y = this.y + walkSpeed;
         } else if (this.y > baseY) {
             this.y = this.y - walkSpeed;
-            //System.out.println(this.y);
         }
     }
 }
