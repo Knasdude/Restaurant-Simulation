@@ -1,7 +1,33 @@
 package org.example;
 
+import java.util.ArrayList;
+
+/**
+ * Defines the methods for managing and notifying ChefObserver instances
+ * in the observer pattern for order processing.
+ */
+
 public interface OrderSubject {
+
+    /**
+     * Registers ChefObserver to receive updates.
+     *
+     * @param observer ChefObserver to be added
+     */
     void addObserver(ChefObserver observer);
+
+    /**
+     * removes an observer from the arraylist
+     *
+     * @param observer the ChefObserver to be added
+     */
     void removeObserver(ChefObserver observer);
-    void notifyObservers(String order);
+
+
+    /**
+     * Notifies all registered observers of a new order.
+     *
+     * @param order the order information to send to observers
+     */
+    void notifyObservers(ArrayList<Food> order);
 }
