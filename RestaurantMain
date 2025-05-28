@@ -7,75 +7,163 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.Random;
 
+/**
+ * Main class representing the restaurant simulation.
+ * Manages the graphical user interface, restaurant entities like tables, chefs, waiters, customers,
+ * and the simulation logic such as order processing and movement.
+ */
+
 public class RestaurantMain extends JPanel {
+    /**
+     * Boolean to control visibility of message bubbles in the UI
+     */
     static boolean showMessage = false;
     //static Timer tableMessageOrderTimer;
-    static HashMap <Table, ArrayList<String>> tableOrder = new HashMap<>();
+    static HashMap <Table, ArrayList<String>> tableOrders = new HashMap<>();
 
+    private static HashMap<Table, Integer> processedCustomerCountMap = new HashMap<>();
+
+
+    /**
+     * Flag to control visibility of message bubbles text in the UI
+     */
     static boolean showTableMessageOrder = false;
-    static Timer messageTimer;
-    static long lastTableTimeAdd = 0;
-    static final long tableAddDelay = 6000;
 
+    /**
+     * Timer controlling how long messages are displayed.
+     */
+    static Timer messageTimer;
+
+    /**
+     * Timestamp for the last time a table was added to the queue.
+     */
+    static long lastTableTimeAdd = 0;
+
+    /**
+     * delay in milliseconds between adding new tables to the queue.
+     */
+
+    static final long tableAddDelay = 10000;
+
+    /**
+     * List of waiters currently in the restaurant.
+     */
     static ArrayList<Waiter> waiters = new ArrayList<Waiter>();
+
+    /**
+     * List of tables in the restaurant.
+     */
     static ArrayList<Table> tables = new ArrayList<Table>();
+
+    /**
+     * List of customers in the restaurant.
+     */
     static ArrayList<Customer> customers = new ArrayList<Customer>();
+
+    /**
+     * List of messages used in the restaurant.
+     */
     static ArrayList<Message> messages = new ArrayList<Message>();
+
+    /**
+     * List of chefs in the restaurant.
+     */
     static ArrayList<Chef> chefs = new ArrayList<>();
-    //static ArrayList<>  //Skit i denhär ta drawSousChef ist
+
+    /**
+    * Specific chef instances
+    */
+
     static MasterChef masterChef;
     static SousChef sousChef;
     static PrepChef prepChef;
     static PastryChef pastryChef;
     static AppetizerChef appetizerChef;
 
+    /**
+     * Queue of table numbers waiting for service.
+     */
     static ArrayList<Integer> TableQueue = new ArrayList<Integer>();
-    //Om tableNumber är ...
 
-    // In here all objects that are needed for operating the restaurant should be created.
-    // This is initialisation and determines the initial state of the program.
-    static void setupRestaurant() throws Exception {
+    /**
+     * Initializes and sets up all restaurant entities such as tables, chefs, waiters, and customers.
+     * Also sets up observers for the master chef
+     */
+    static void setupRestaurant() {
 
-        /*
-        chefs.add(new Chef(80, 80)); //dessa är ursprungspositioner: Fixa det som det
-        chefs.add(new Chef(150, 380));
-        chefs.add(new Chef(290, 80));
-        chefs.add(new Chef(390, 500));
-         */
-
-        sousChef = new SousChef(150, 380);
-        prepChef = new PrepChef(80,80);
-        pastryChef = new PastryChef(290, 80);
-        appetizerChef = new AppetizerChef(390, 500);
-
-        masterChef = new MasterChef(350,300);
+        waiters.add(new Waiter(520,300 ));
+        masterChef = MasterChef.getInstance();
+        sousChef = new SousChef(150, 380, masterChef);
+        prepChef = new PrepChef(80,80, masterChef);
+        pastryChef = new PastryChef(290, 80, masterChef);
+        appetizerChef = new AppetizerChef(390, 500, masterChef);
 
         chefs.add(sousChef);
         chefs.add(prepChef);
         chefs.add(pastryChef);
         chefs.add(appetizerChef);
 
-        //Overtables
-        tables.add(new Table(1000, 20, "1", 2));//FIX setupX och Y
-        tables.add(new Table(850, 20, "2", 1));
-        tables.add(new Table(700, 20, "3", 5));
+        //Tables on the upper part of restaurant
+        tables.add(new Table(1000, 20, "1"));//
+        tables.add(new Table(850, 20, "2"));
+        tables.add(new Table(700, 20, "3"));
 
-        //Undertables
-        tables.add(new Table(1000, 500, "4", 2));
-        tables.add(new Table(850, 500, "5", 4));
-        tables.add(new Table(700, 500, "6", 4));
-;
+        ////Tables on the bottom part of restaurant
+        tables.add(new Table(1000, 500, "4"));
+        tables.add(new Table(850, 500, "5"));
+        tables.add(new Table(700, 500, "6"));
+
+        Customer customer1 = new Customer(tables.get(0));
+        Customer customer2 = new Customer(tables.get(1));
+        Customer customer3 = new Customer(tables.get(1));
+        Customer customer4 = new Customer(tables.get(2));
+        Customer customer5 = new Customer(tables.get(3));
+        Customer customer6 = new Customer(tables.get(4));
+
+        tables.get(0).addCustomer(customer1);
+        tables.get(1).addCustomer(customer2);
+        tables.get(1).addCustomer(customer3);
+        tables.get(2).addCustomer(customer4);
+        tables.get(3).addCustomer(customer5);
+        tables.get(4).addCustomer(customer6);
+
+        customers.add(customer1);
+        customers.add(customer2);
+        customers.add(customer3);
+        customers.add(customer4);
+        customers.add(customer5);
+        customers.add(customer6);
+
+        /*
+        In order to test customerLimitCheck:
+        Customer customer7 = new Customer(tables.get(0));
+        Customer customer8 = new Customer(tables.get(0));
+        Customer customer9 = new Customer(tables.get(0));
+        Customer customer10 = new Customer(tables.get(0));
+        Customer customer11 = new Customer(tables.get(0));
+
+        customers.add(customer7);
+        customers.add(customer8);
+        customers.add(customer9);
+        customers.add(customer10);
+        customers.add(customer11);
+         */
+
+        //Adding customerCount for all tables
+        for (Customer customer: customers){
+            Table currentTable = customer.getTable();
+            currentTable.addCustomerCount();
+        }
+
+        //Checking the customerLimit for all tables
         for (Table table: tables){
             table.customerLimitCheck();
         }
 
-        waiters.add(new Waiter(520,300 )); // Ursprung: 520, 300;
-
-        Customer customer1 = new Customer(4);
-        Customer customer2 = new Customer(2);
-
-        customers.add(customer1);
-        customers.add(customer2);
+        //Printing out the number of customers per table
+        for (int i = 1; i<=6; i++){
+            System.out.println("At table " + i + " number of customers:" + tables.get(i-1).getNumberCustomers());
+        }
 
         messages.add(new Message(Message.getX(waiters.get(0)), Message.getY(waiters.get(0))));
 
@@ -83,44 +171,105 @@ public class RestaurantMain extends JPanel {
         masterChef.addObserver(prepChef);
         masterChef.addObserver(pastryChef);
         masterChef.addObserver(appetizerChef);
+
+        TableQueue.add(1);
     }
 
 
-
-    // Contains the simulation logic, should probably be broken into smaller pieces as the program expands
+    /**
+     * Updates the simulation state, including chef activities, waiter movements, message bubble and customers
+     * order processing, and table queue.
+     *
+     * @throws InterruptedException if thread sleep is interrupted
+     */
     static void update() throws InterruptedException {
 
+
+        //Logic for repetedly adding a table to tableQueue
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTableTimeAdd >= tableAddDelay) {
-            int randomTableInt = (int) (Math.random() * 6);
-            TableQueue.add(randomTableInt);
+            //int randomTableInt = (int) (Math.random() * 6);
+            //TableQueue.add(randomTableInt);
             lastTableTimeAdd = currentTime;
         }
 
-        for (Chef c: chefs){
-            if (waiters.get(0).getWaiterStatus() == Waiter.waiterStatus.IDLE){
-                System.out.println("waiter at mchef");
+        for (Chef chef : chefs) {
+            if (!pastryChef.getCookingList().isEmpty()) {
+                if ((pastryChef.getPastryChefStatus() == PastryChef.PastryChefStatus.IDLE)) {
+                    pastryChef.setStatus(PastryChef.PastryChefStatus.WALKING_TO_MASTER_CHEF);
+                }
 
+                if ((pastryChef.getPastryChefStatus() == PastryChef.PastryChefStatus.WALKING_TO_MASTER_CHEF)) {
+                    pastryChef.walkTo(masterChef);
+                }
+
+                if ((pastryChef.isAtMasterChef() && pastryChef.getPastryChefStatus() == PastryChef.PastryChefStatus.WALKING_TO_MASTER_CHEF)) {
+                    pastryChef.resetWaitTimer();
+                }
+
+                if (pastryChef.isAtMasterChef()) {
+                    pastryChef.setStatus(PastryChef.PastryChefStatus.RECEIVING_ORDER);
+                }
+
+                if (pastryChef.getPastryChefStatus() == PastryChef.PastryChefStatus.RECEIVING_ORDER) {
+                    if (currentTime - pastryChef.getWaitTimer() >= 2000) {
+                        pastryChef.setStatus(PastryChef.PastryChefStatus.WALKING_TO_STATION);
+                    }
+                }
+
+                if (pastryChef.getPastryChefStatus() == PastryChef.PastryChefStatus.WALKING_TO_STATION) {
+                    pastryChef.walkToBase();
+                    if (pastryChef.isChefAtBase() && (!pastryChef.getCookingList().isEmpty())) {
+                        pastryChef.setStatus(PastryChef.PastryChefStatus.IDLE);
+                    }
+                }
+
+                if (pastryChef.getCookingList().isEmpty()) {
+                    pastryChef.setStatus(PastryChef.PastryChefStatus.IDLE);
+                }
             }
         }
 
-        //Sen lägg in observer pattern HÄR
 
-        //Should be small, if in waiter
+        if (!(waiters.get(0).getCurrentTable() == null)) {
 
-        //customers.get(0).order(waiters.get(0), tables.get(4));
-        // what should happen with the waiter each time the simulation loops
+            Waiter waiter = waiters.get(0);
+            Table customersTable = waiter.getCurrentTable();
+
+            int amountOrderedCustomers = processedCustomerCountMap.getOrDefault(customersTable, 0);
+            int totalCustomers = waiter.getCurrentTable().getNumberCustomers();
+
+            ArrayList<Customer> customers = waiter.getCurrentTable().getCustomerList();
+
+            if ((waiter.getCurrentTable() != null) && (waiter.getCurrentTable() == customersTable) && (waiter.getWaiterStatus() == Waiter.waiterStatus.WAITING_AT_TABLE)) {
+
+                if (amountOrderedCustomers < totalCustomers){
+
+                    Customer currentCustomer = customers.get(amountOrderedCustomers);
+                    ArrayList<Food> customerOrder = currentCustomer.orderToWaiter(waiter, currentCustomer.getTable());
+
+                    System.out.println("Table order: " + currentCustomer.orderToWaiter(waiter, currentCustomer.getTable()));
+
+                    processedCustomerCountMap.put(waiter.getCurrentTable(), amountOrderedCustomers+1);
+
+                    if (currentTime - waiter.getCurrentTable().getWaitTimer() >= 2000){
+                        customersTable.addOrderCount();
+                    }
 
 
 
+                }
+                else {
+                    if (waiter.getCurrentTable() == null){
+                        processedCustomerCountMap.put(waiter.getCurrentTable(), 0);
+                    }
+                }
+            }
+        }
 
         for (Waiter w : waiters) {
 
-            //Lägg in att customers kan beställa en för varje customer i en for loop
-            if (!TableQueue.isEmpty()) {
-
-                //System.out.println(w.dessertMenu().get(1).getFoodName());
-                //System.out.println(w.dessertMenu().get(1).getType());
+            if (!TableQueue.isEmpty() && (tables.get(TableQueue.get(0)).getNumberCustomers() != 0)) {
 
                 if (w.getWaiterStatus() == Waiter.waiterStatus.IDLE) {
                     w.setStatus(Waiter.waiterStatus.WALKING_TO_TABLE);
@@ -132,9 +281,11 @@ public class RestaurantMain extends JPanel {
                 }
 
                 if (w.getWaiterStatus() == Waiter.waiterStatus.WAITING_AT_TABLE) {
+                    w.getCurrentTable().resetWaitTimer();
                     showMessageBubble();
                     showTableMessageOrder = true;
                     w.getCurrentTable().setTableNameOrder();
+                    w.receiveOrder(w.getCurrentTable().getCustomerList().get(0));
 
                     if (currentTime - w.getWaitTimer() >= 2000) {
                         w.setStatus(Waiter.waiterStatus.WALKING_TO_BASE);
@@ -144,7 +295,7 @@ public class RestaurantMain extends JPanel {
                 if (w.getWaiterStatus() == Waiter.waiterStatus.WALKING_TO_BASE) {
                     w.walkToBase();
 
-                    if (w.getCurrentTable() != null){
+                    if (w.getCurrentTable() != null) {
                         w.getCurrentTable().resetTableName();
                         w.setCurrentTable(null);
                     }
@@ -154,15 +305,14 @@ public class RestaurantMain extends JPanel {
                         TableQueue.remove(0);
                     }
                 }
-
-                //System.out.println(TableQueue);
-                //System.out.println(masterChef.getObservers());
-
             }
         }
     }
 
-
+    /**
+     * Shows a temporary message bubble near the waiter to show order activity.
+     * Uses a timer to hide the message after a short duration.
+     */
     static void showMessageBubble() {
         showMessage = true;
 
@@ -175,8 +325,12 @@ public class RestaurantMain extends JPanel {
         messageTimer.start();
     }
 
-
-        // ... similar updates for all other agents in the simulation.
+    /**
+     * Paints the restaurant simulation GUI components
+     * Called automatically by the Swing framework when the panel needs to be redrawn
+     *
+     * @param g Graphics context used for drawing
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -235,8 +389,6 @@ public class RestaurantMain extends JPanel {
 
         drawAppetizerChef(g);
 
-
-        // MORE CODE HERE
     }
 
 
@@ -291,7 +443,7 @@ public class RestaurantMain extends JPanel {
     }
 
     static void drawMessage(Graphics g){
-        if (showMessage == true) {
+        if (showMessage) {
             for (Message message : messages) {
                 g.setColor(Color.BLACK);
                 g.fillOval(Message.getX(waiters.get(0)), Message.getY(waiters.get(0)), message.getDiameter(), message.getDiameter()); // Draw circle with diameter of 50 pixels
@@ -303,6 +455,13 @@ public class RestaurantMain extends JPanel {
         }
     }
 
+    /**
+     * Main method starting the restaurant simulation.
+     * Creates the window, sets up the restaurant, and enters the update-render loop.
+     *
+     * @param args command line arguments
+     * @throws Exception if setup fails
+     */
     public static void main(String[] args) throws Exception {
     // Create the frame
         JFrame frame = new JFrame("Restuarant Simulation");
