@@ -1,10 +1,23 @@
 package org.example;
 
+/**
+ * Contains the enum-values of different types of Food
+ * used in the restaurant simulation.
+ */
+
 public class FoodTypes {
     public enum FoodType {
+
+        /** Appetizer dishes */
         APPETIZER,
+
+        /** Main course dishes */
         MAIN,
+
+        /** Dessert dishes */
         DESSERT,
+
+        /** Drinks */
         DRINKS
     }
 }
