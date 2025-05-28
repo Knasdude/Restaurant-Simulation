@@ -1,6 +1,18 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
+
+
+/**
+ * Singleton class representing the MasterChef.
+ * The MasterChef manages cooking orders, distributes tasks to different chef observers,
+ * and keeps track of which foods are finished and which are unfinished
+ * Implements the OrderSubject interface to notify chef observers about new orders.
+ */
+
+
 
 public class MasterChef implements OrderSubject{
     private int x;
@@ -8,47 +20,221 @@ public class MasterChef implements OrderSubject{
     private final int diameter;
     private ArrayList<ChefObserver> observers = new ArrayList<>();
 
-    public MasterChef(int x, int y) {
+    private ArrayList<Food> rawCookingList = new ArrayList<>();
+    private ArrayList<Food> doneDishes = new ArrayList<>();
+
+    private ArrayList<Food> pastryChefCookingList = new ArrayList<>();
+    private ArrayList<Food> sousChefCookingList = new ArrayList<>();
+    private ArrayList<Food> prepChefCookingList = new ArrayList<>();
+    private ArrayList<Food> appetizerChefCookingList = new ArrayList<>();
+
+
+    private static MasterChef instance;
+
+
+    /**
+     * Private constructor for
+     * Initializes the MasterChef's position and size.
+     *
+     * @param x the starting x coordinate
+     * @param y the starting y coordinate
+     */
+
+    private MasterChef(int x, int y) {
         this.x = x;
         this.y = y;
         this.diameter = 50;
     }
 
+    /**
+     * Returns the singleton instance of the MasterChef.
+     * If the instance does not exist it is created with default position (350, 300).
+     *
+     * @return the single instance of MasterChef
+     */
+
+    public static synchronized MasterChef getInstance() {
+        if (instance == null) {
+            instance = new MasterChef(350, 300);
+        }
+        return instance;
+    }
+
+    /**
+     * Returns the x coordinate of the MasterChef.
+     *
+     * @return the x coordinate
+     */
+
     public int getX() {
         return x;
     }
+
+    /**
+     * Returns the y coordinate of the MasterChef.
+     *
+     * @return the y coordinate
+     */
 
     public int getY() {
         return y;
     }
 
+    /**
+     * Returns the diameter of the MasterChef
+     *
+     * @return the diameter
+     */
+
     public int getDiameter() {
         return diameter;
     }
 
+    /**
+     * Returns the list of all chef observers.
+     *
+     * @return list of ChefObservers
+     */
+
     public ArrayList<ChefObserver> getObservers(){
         return observers;
     }
+
+    /**
+     * Receives orders from a waiter
+     *
+     * @param waiter the waiter delivering the order
+     * @return list of received food orders
+     */
+
+    public ArrayList<Food> receiveWaiterOrder(Waiter waiter){
+        return waiter.getRecievedOrders();
+    }
+
+    /**
+     * Adds a chef observer to be notified of new orders.
+     *
+     * @param observer the chef observer to add
+     */
 
     @Override
     public void addObserver(ChefObserver observer) {
         observers.add(observer);
     }
 
+    /**
+     * Removes a chef observer from the notification list
+     *
+     * @param observer the chef observer to remove
+     */
+
     @Override
     public void removeObserver(ChefObserver observer) {
         observers.remove(observer);
     }
 
+    /**
+     * Notifies all chef observers of a new order.
+     *
+     * @param order the order as an ArrayList containing Food items.
+     */
+
     @Override
-    public void notifyObservers(String order) {
+    public void notifyObservers(ArrayList<Food> order) {
         for (ChefObserver observer : observers) {
-            observer.update(order);
+
+            if (observer instanceof PastryChef && containsFoodType(order, FoodTypes.FoodType.DESSERT)) {
+                observer.update(order);
+            }
+
+            if (observer instanceof PrepChef && containsFoodType(order, FoodTypes.FoodType.DRINKS)) {
+                observer.update(order);
+            }
+
+            if (observer instanceof SousChef && containsFoodType(order, FoodTypes.FoodType.MAIN)) {
+                observer.update(order);
+            }
+
+            if (observer instanceof AppetizerChef && containsFoodType(order, FoodTypes.FoodType.APPETIZER)) {
+                observer.update(order);
+            }
         }
     }
 
-    public void createOrder(String order) {
-        System.out.println("MasterChef sends out order: " + order);
-        notifyObservers(order);
+    /**
+     * Checks if the given order contains any food item of the specified food type.
+     *
+     * @param order the list of Food items to check
+     * @param type the FoodType to look for in the order
+     * @return true if at least one food item in the order matches the specified type, false otherwise
+     */
+
+    private boolean containsFoodType(ArrayList<Food> order, FoodTypes.FoodType type) {
+        for (Food food : order) {
+            if (food.getType() == type) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the list of food assigned to the Pastry Chef.
+     *
+     * @return list of food items for the Pastry Chef
+     */
+
+    public ArrayList<Food> getPastryChefCookingList() {
+        return pastryChefCookingList;
+    }
+
+    /**
+     * Returns the list of food assigned to the Sous Chef.
+     *
+     * @return list of food items for the Sous Chef
+     */
+
+    public ArrayList<Food> getSousChefCookingList() {
+        return sousChefCookingList;
+    }
+
+    /**
+     * Returns the list of food assigned to the Prep Chef.
+     *
+     * @return list of food items for the Prep Chef
+     */
+
+    public ArrayList<Food> getPrepChefCookingList() {
+        return prepChefCookingList;
+    }
+
+    /**
+     * Returns the list of food assigned to the Appetizer Chef.
+     *
+     * @return list of food items for the Appetizer Chef
+     */
+
+    public ArrayList<Food> getAppetizerChefCookingList() {
+        return appetizerChefCookingList;
+    }
+
+    /**
+     * Returns the list of raw food items about to be cooked
+     *
+     * @return list of raw Food items
+     */
+
+    public ArrayList<Food> getRawCookingList() {
+        return rawCookingList;
+    }
+
+    /**
+     * Returns the list of dishes that have been completed
+     *
+     * @return list of completed Food items
+     */
+
+    public ArrayList<Food> getDoneDishes() {
+        return doneDishes;
     }
 }
